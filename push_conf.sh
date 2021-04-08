@@ -27,6 +27,7 @@ declare -A confmap
 confmap[bashrc]="$HOME/.bashrc"
 confmap[i3_config]="$HOME/.config/i3/config"
 confmap[vimrc]="$HOME/.vimrc"
+confmap[sakuraconf]="$HOME/.config/sakura/sakura.conf"
 
 function compare_md5() {
 	md5_lhs=$(md5sum ./$1 | cut -d " " -f1)
@@ -44,33 +45,58 @@ function compare_md5() {
 	fi
 }
 
+function do_work() {
+	case 1 in
+		$push )
+			echo "Pushing live config to storage..."
+			cp "$storage" "$live"
+			;;
+		$save )
+			echo "Saving live config..."
+			cp "$live" "$storage";
+			;;
+		* )
+			echo "Info for $storage and $live:";
+			if [[ $storage -nt $live} ]];
+			then
+				echo -e "$storage is newer."
+			else 		
+				echo -e "$live is newer."
+			fi
+			;;
+	esac
+}	
+
 for storage in "${!confmap[@]}"; 
 do
 	live=${confmap[$storage]};
+	if [ ! -f "$live" ];
+	then
+		if [[ $push -eq 1 ]];
+		then
+			do_work
+		else
+			echo -e "$live does not exist."
+			continue;
+		fi
+	fi
+	if [ ! -f "$storage" ];
+	then
+		if [[ $save -eq 1 ]];
+		then
+			do_work
+		else
+			echo -e "$storage does not exst."
+			continue;
+		fi
+	fi
+
 	compare_md5 "$storage" "$live";
 	if [[ $? -eq 0 ]];
 	then
 		echo -e "Nothing to do";
 	else
-		case 1 in
-			$push )
-				echo "Pushing live config to storage..."
-				cp "$storage" "$live"
-				;;
-			$save )
-				echo "Saving live config..."
-				cp "$live" "$storage";
-				;;
-			* )
-				echo "Info for $storage and $live:";
-				if [[ $storage -nt $live} ]];
-				then
-					echo -e "$storage is newer."
-				else 		
-					echo -e "$live is newer."
-				fi
-				;;
-		esac	
+		do_work
 	fi
 done
 
