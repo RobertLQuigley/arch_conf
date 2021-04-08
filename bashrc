@@ -1,11 +1,14 @@
-#
-# ~/.bashrc
-#
+GPG_TTY=$(tty)
+export GPG_TTY
 
-# If not running interactively, don't do anything
-[[ $- != *i* ]] && return
+export TERM=xterm
 
-alias ls='ls --color=auto'
-PS1='[\u@\h \W]\$ '
+git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
+
+export PS1="\[\`if [[  \$? = "0" ]]; then echo '\e[32m\u@\h\e[0m'; else echo '\e[31m\u@\h\e[0m'; fi\`:\w \e[36m\$(git_branch)\e[0m\n\$ "
+alias ls="ls --color=auto"
+alias tmux="tmux -2"
 
 
